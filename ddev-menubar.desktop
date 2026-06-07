@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=DDEV Menubar
+Comment=DDEV project manager for Ubuntu
+Exec=ddev-menubar
+Icon=ddev-menubar
+Type=Application
+Categories=Development;
+StartupNotify=false
+X-GNOME-Autostart-enabled=true
