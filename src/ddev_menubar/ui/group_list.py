@@ -116,6 +116,7 @@ class GroupListView(Gtk.Box):
         menu.append(item("Restart All", lambda: store.restart_group(group)))
         menu.append(Gtk.SeparatorMenuItem())
         menu.append(item("Edit", lambda: store.begin_edit_group(group)))
+        menu.append(item("Duplicate", lambda: store.duplicate_group(group)))
         menu.append(item("Delete", lambda: self._confirm_delete(group)))
 
         menu.show_all()

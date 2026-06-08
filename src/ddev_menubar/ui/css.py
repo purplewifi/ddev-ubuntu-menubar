@@ -42,6 +42,12 @@ APP_CSS = b"""
     font-size: 0.85em;
 }
 
+/* Favourite star */
+.favourite-star {
+    color: #f0c040;
+    font-size: 0.8em;
+}
+
 /* Group rows */
 .group-row {
     padding: 6px 10px;

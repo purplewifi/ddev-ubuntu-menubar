@@ -15,6 +15,7 @@ from ..models.startup_progress import DdevFriendlyLog, ProgressKind, StartupProg
 from .ddev_cli import DdevCLI, DdevCLIError
 from .group_repository import ProjectGroupRepository
 from .notification_service import NotificationService
+from .preferences_repository import PreferencesRepository
 from .terminal_launcher import TerminalLauncher
 
 
@@ -25,14 +26,17 @@ class DdevProjectStore:
         group_repo: Optional[ProjectGroupRepository] = None,
         notifications: Optional[NotificationService] = None,
         terminal: Optional[TerminalLauncher] = None,
+        prefs_repo: Optional[PreferencesRepository] = None,
     ) -> None:
         self._cli = cli or DdevCLI()
         self._group_repo = group_repo or ProjectGroupRepository()
         self._notifications = notifications or NotificationService.shared()
         self._terminal = terminal or TerminalLauncher()
+        self._prefs_repo = prefs_repo or PreferencesRepository()
 
         self.projects: List[DdevProject] = []
         self.groups: List[DdevProjectGroup] = self._group_repo.load()
+        self.favourited_project_names: Set[str] = set(self._prefs_repo.load_favourites())
         self.selected_project_name: Optional[str] = None
         self.selected_detail: Optional[DdevProjectDetail] = None
         self.selected_group_id: Optional[str] = None
@@ -67,12 +71,24 @@ class DdevProjectStore:
     @property
     def filtered_projects(self) -> List[DdevProject]:
         q = self.search_text.strip().lower()
-        if not q:
-            return self.projects
-        return [
+        projects = self.projects if not q else [
             p for p in self.projects
             if q in p.name.lower() or q in p.shortroot.lower() or q in p.approot.lower()
         ]
+        favs = [p for p in projects if p.name in self.favourited_project_names]
+        rest = [p for p in projects if p.name not in self.favourited_project_names]
+        return favs + rest
+
+    def is_favourite(self, name: str) -> bool:
+        return name in self.favourited_project_names
+
+    def toggle_favourite(self, name: str) -> None:
+        if name in self.favourited_project_names:
+            self.favourited_project_names.discard(name)
+        else:
+            self.favourited_project_names.add(name)
+        self._prefs_repo.save_favourites(sorted(self.favourited_project_names))
+        self._emit()
 
     @property
     def filtered_groups(self) -> List[DdevProjectGroup]:
@@ -150,6 +166,17 @@ class DdevProjectStore:
         self.selected_group_id = None
         self.is_editing_group = True
         self.editing_group = DdevProjectGroup(name="", project_names=[])
+        self._clear_project_selection()
+        self._emit()
+
+    def duplicate_group(self, group: DdevProjectGroup) -> None:
+        new_group = DdevProjectGroup(
+            name=f"Copy of {group.name}",
+            project_names=list(group.project_names),
+        )
+        self.selected_group_id = None
+        self.is_editing_group = True
+        self.editing_group = new_group
         self._clear_project_selection()
         self._emit()
 

@@ -114,6 +114,11 @@ class ProjectListView(Gtk.Box):
         name_lbl.get_style_context().add_class("project-name")
         top_row.pack_start(name_lbl, True, True, 0)
 
+        star_lbl = Gtk.Label(label="★")
+        star_lbl.get_style_context().add_class("favourite-star")
+        star_lbl.set_visible(self._store.is_favourite(project.name))
+        top_row.pack_end(star_lbl, False, False, 0)
+
         status_lbl = Gtk.Label(label=project.status_desc, xalign=1)
         status_lbl.get_style_context().add_class(
             "project-status-running" if project.is_running else "project-status-stopped"
@@ -171,6 +176,10 @@ class ProjectListView(Gtk.Box):
         menu.append(item("Auth SSH", lambda: store.auth_ssh_in_terminal()))
         menu.append(item("View Logs", lambda: self._request_logs(project)))
         menu.append(item("Logs in Terminal", lambda: store.show_logs_in_terminal(project.name, project.approot)))
+
+        menu.append(Gtk.SeparatorMenuItem())
+        fav_label = "Unfavourite" if store.is_favourite(project.name) else "Favourite"
+        menu.append(item(fav_label, lambda: store.toggle_favourite(project.name)))
 
         menu.show_all()
         return menu

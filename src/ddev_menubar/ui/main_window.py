@@ -22,6 +22,7 @@ class MainWindow(Gtk.Window):
         super().__init__()
         self._store = store
         self._log_viewer: Optional[LogViewerWindow] = None
+        self._editing_group_id: Optional[str] = None
 
         self.set_title("DDEV Menubar")
         self.set_decorated(True)
@@ -354,12 +355,17 @@ class MainWindow(Gtk.Window):
             self._stack.set_visible_child_name("loading")
         elif store.main_tab == "groups":
             if store.is_editing_group and store.editing_group is not None:
-                self._group_editor_view.refresh()
+                current_id = store.editing_group.id
+                if current_id != self._editing_group_id:
+                    self._editing_group_id = current_id
+                    self._group_editor_view.refresh()
                 self._stack.set_visible_child_name("group_editor")
             elif store.selected_group_id:
+                self._editing_group_id = None
                 self._group_detail_view.refresh()
                 self._stack.set_visible_child_name("group_detail")
             else:
+                self._editing_group_id = None
                 self._group_list_view.refresh()
                 self._stack.set_visible_child_name("group_list")
         else:
