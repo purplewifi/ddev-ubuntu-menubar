@@ -228,7 +228,7 @@ class DdevProjectStore:
         self.editing_group = None
         self._emit()
 
-    def start_auto_refresh(self, interval_seconds: int = 15) -> None:
+    def start_auto_refresh(self, interval_seconds: int = 120) -> None:
         self._stop_auto_refresh()
         def tick():
             self.refresh_projects()
